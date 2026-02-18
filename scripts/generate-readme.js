@@ -59,6 +59,8 @@ async function main() {
 
 Minimal ASCII art and styled text for \`console.log\` — works everywhere.
 
+This doesn't solve a problem. It won't make your app faster or your code cleaner. It's just a bit of whimsical flair for your console — because sometimes the best reason to build something is that it makes you smile.
+
 - **~1-2KB** core (text mode)
 - **~1-2KB** per font (lazy-loaded on demand)
 - **Zero runtime dependencies** — fonts are pre-compiled
