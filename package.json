@@ -1,6 +1,6 @@
 {
   "name": "ascii-flair",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Minimal ASCII art and styled text for console.log — works everywhere",
   "type": "module",
   "main": "./dist/ascii-flair.cjs",
