@@ -234,7 +234,19 @@ flair(text, mode, fontOrOptions?, options?)
 > **Note:** \`flair()\` returns a Promise in \`'flair'\` mode because fonts are lazy-loaded on first use. In \`'text'\` mode it is synchronous. See [Why \`await\`?](#why-await) above.
 
 ## Available Fonts
+
+All fonts are from the [FIGlet](http://www.figlet.org/) font library via the excellent [figlet.js](https://github.com/patorjk/figlet.js) project by [patorjk](https://github.com/patorjk). FIGlet fonts have been a beloved part of computing culture since 1991 — ascii-flair just makes them easy to drop into any JavaScript project.
+
+Fonts are pre-compiled at build time so figlet is never a runtime dependency. Full credit to the FIGlet authors and contributors for decades of ASCII art.
 ${fontGallery}
+
+## Credits
+
+- **[figlet.js](https://github.com/patorjk/figlet.js)** by [patorjk](https://github.com/patorjk) — the font engine that makes this possible. Used as a build-time devDependency to pre-compile font data.
+- **[FIGlet](http://www.figlet.org/)** — the original FIGlet project (1991) by Glenn Chappell, Ian Chai, and many contributors. The font formats and designs come from this community.
+- **Font authors** — each FIGlet font was designed by an individual contributor. Font credits are embedded in the original \`.flf\` font files in the [figlet.js font directory](https://github.com/patorjk/figlet.js/tree/master/fonts).
+
+This project is open source and stands on the shoulders of open source. If you enjoy the fonts, consider starring [figlet.js](https://github.com/patorjk/figlet.js) too.
 
 ## License
 
