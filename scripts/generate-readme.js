@@ -73,16 +73,22 @@ This doesn't solve a problem. It won't make your app faster or your code cleaner
 npm install ascii-flair
 \`\`\`
 
+## Zero Impact
+
+ascii-flair writes to \`console.log\` and nothing else. It does not touch the DOM, modify state, inject styles, or affect your application in any way. It's a dev console novelty — your users will never see it, and your app will never feel it.
+
+The entire core is **~1-2KB gzipped**. Each font adds another ~1-2KB, loaded on demand. That's it.
+
 ## Usage
 
 \`\`\`js
 import { flair } from 'ascii-flair'
 
 // ASCII art mode
-flair('My App', 'flair', 'standard')
+await flair('My App', 'flair', 'standard')
 
 // ASCII art with styling
-flair('My App', 'flair', 'doom', { color: 'cyan', border: true })
+await flair('My App', 'flair', 'doom', { color: 'cyan', border: true })
 
 // Styled plain text
 flair('Server started on :3000', 'text', { color: 'green', bold: true })
@@ -91,13 +97,72 @@ flair('Server started on :3000', 'text', { color: 'green', bold: true })
 flair('v2.0', 'text', { border: true, padding: 1 })
 \`\`\`
 
-Each \`flair()\` call is its own line. To build multiple lines, use multiple calls:
+### Why \`await\`?
+
+In \`'flair'\` mode, fonts are **lazy-loaded** the first time you use them. This keeps the initial bundle tiny — you only pay for the fonts you actually use. The trade-off is that the first call with a given font returns a Promise.
 
 \`\`\`js
+// flair mode → async (font must be loaded)
+await flair('Hello', 'flair', 'doom')
+
+// text mode → synchronous (no font needed)
+flair('Hello', 'text')
+\`\`\`
+
+**What if you skip \`await\`?** It still works. The text will appear in the console. But if you have multiple \`flair()\` calls, they may print out of order because the font loads haven't resolved yet. Use \`await\` when ordering matters:
+
+\`\`\`js
+// These will always print in order
 await flair('My App', 'flair', 'doom')
 await flair('v2.0', 'flair', 'mini')
 flair('Ready to go!', 'text', { color: 'green' })
 \`\`\`
+
+After a font loads once, it's cached — subsequent calls with the same font resolve instantly.
+
+### In the Browser (Vue, React, Angular, etc.)
+
+Open your browser's DevTools console. That's where the output goes. Your users never see it. Your app's rendering, state, and performance are completely unaffected.
+
+\`\`\`js
+// React — in a useEffect, component mount, wherever
+import { flair } from 'ascii-flair'
+
+useEffect(() => {
+  flair('My React App', 'flair', 'doom')
+  flair('v3.1.0', 'text', { color: 'cyan' })
+}, [])
+\`\`\`
+
+\`\`\`js
+// Vue — in a plugin, onMounted, main.js, wherever
+import { flair } from 'ascii-flair'
+
+onMounted(() => {
+  flair('My Vue App', 'flair', 'standard')
+})
+\`\`\`
+
+\`\`\`js
+// Nuxt — in a plugin
+export default defineNuxtPlugin(() => {
+  flair('My Nuxt App', 'flair', 'slant')
+})
+\`\`\`
+
+In browser contexts, colors render as CSS-styled \`console.log\` output.
+
+### In the Terminal (Node.js, CLI tools)
+
+\`\`\`js
+// Node.js — at startup, in a CLI, wherever
+import { flair } from 'ascii-flair'
+
+await flair('my-cli', 'flair', 'doom', { color: 'cyan' })
+flair('v1.0.0 ready', 'text', { color: 'green', bold: true })
+\`\`\`
+
+In terminal contexts, colors render as ANSI escape codes.
 
 ### Auto-Truncation
 
@@ -141,7 +206,7 @@ flair(text, mode, fontOrOptions?, options?)
 | \`padding\` | number | \`0\` | Lines of padding around text |
 | \`maxWidth\` | number | \`80\` | Max output width in characters. Text beyond this is truncated. |
 
-> **Note:** \`flair()\` returns a Promise in \`'flair'\` mode (fonts are lazy-loaded). In \`'text'\` mode it is synchronous.
+> **Note:** \`flair()\` returns a Promise in \`'flair'\` mode because fonts are lazy-loaded on first use. In \`'text'\` mode it is synchronous. See [Why \`await\`?](#why-await) above.
 
 ## Available Fonts
 ${fontGallery}
