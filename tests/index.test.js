@@ -42,4 +42,31 @@ describe('flair', () => {
   it('throws on unknown mode', async () => {
     await expect(flair('hello', 'invalid')).rejects.toThrow()
   })
+
+  it('truncates ASCII art to 80 chars wide by default', async () => {
+    await flair('This Is A Really Long String Of Text', 'flair', 'standard')
+    expect(console.log).toHaveBeenCalled()
+    const output = console.log.mock.calls[0][0]
+    const lines = output.split('\n')
+    for (const line of lines) {
+      expect(line.length).toBeLessThanOrEqual(80)
+    }
+  })
+
+  it('respects custom maxWidth in flair mode', async () => {
+    await flair('Hello World', 'flair', 'standard', { maxWidth: 40 })
+    expect(console.log).toHaveBeenCalled()
+    const output = console.log.mock.calls[0][0]
+    const lines = output.split('\n')
+    for (const line of lines) {
+      expect(line.length).toBeLessThanOrEqual(40)
+    }
+  })
+
+  it('truncates plain text to maxWidth', () => {
+    const longText = 'a'.repeat(100)
+    flair(longText, 'text')
+    const output = console.log.mock.calls[0][0]
+    expect(output.length).toBeLessThanOrEqual(80)
+  })
 })

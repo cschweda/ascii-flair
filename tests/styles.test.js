@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { applyAnsiColor, applyBorder, applyPadding } from '../src/styles.js'
+import { applyAnsiColor, applyBorder, applyPadding, truncateText } from '../src/styles.js'
 
 describe('applyAnsiColor', () => {
   it('wraps text in cyan ANSI codes', () => {
@@ -55,6 +55,32 @@ describe('applyPadding', () => {
 
   it('returns text unchanged with 0 padding', () => {
     const result = applyPadding('hello', 0)
+    expect(result).toBe('hello')
+  })
+})
+
+describe('truncateText', () => {
+  it('truncates a long line and adds ellipsis', () => {
+    const result = truncateText('abcdefghij', 6)
+    expect(result).toBe('abcde\u2026')
+    expect(result.length).toBe(6)
+  })
+
+  it('leaves short text unchanged', () => {
+    const result = truncateText('hello', 80)
+    expect(result).toBe('hello')
+  })
+
+  it('truncates each line independently for multi-line text', () => {
+    const result = truncateText('abcdefghij\nshort\nabcdefghij', 6)
+    const lines = result.split('\n')
+    expect(lines[0]).toBe('abcde\u2026')
+    expect(lines[1]).toBe('short')
+    expect(lines[2]).toBe('abcde\u2026')
+  })
+
+  it('returns text unchanged when maxWidth is falsy', () => {
+    const result = truncateText('hello', 0)
     expect(result).toBe('hello')
   })
 })

@@ -27,4 +27,24 @@ describe('renderAscii', () => {
     const result = renderAscii('H?', mockFont)
     expect(result).toBe('H H   \nHHH   \nH H   ')
   })
+
+  it('truncates to maxWidth by dropping characters that would exceed it', () => {
+    // Each char is 3 wide. maxWidth=7 fits 2 chars (6 wide) but not 3 (9 wide)
+    const result = renderAscii('HHH', mockFont, 7)
+    expect(result).toBe('H HH H\nHHHHHH\nH HH H')
+  })
+
+  it('truncates long text to default 80 chars', () => {
+    // 'H' is 3 chars wide, so 80/3 = 26 chars max
+    const longText = 'H'.repeat(30)
+    const result = renderAscii(longText, mockFont)
+    const firstLine = result.split('\n')[0]
+    expect(firstLine.length).toBeLessThanOrEqual(80)
+  })
+
+  it('respects custom maxWidth', () => {
+    const result = renderAscii('HHHHHH', mockFont, 10)
+    const firstLine = result.split('\n')[0]
+    expect(firstLine.length).toBeLessThanOrEqual(10)
+  })
 })

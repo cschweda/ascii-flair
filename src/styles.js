@@ -36,6 +36,15 @@ export function applyPadding(text, padding) {
   return `${pad}${text}${pad}`
 }
 
+export function truncateText(text, maxWidth) {
+  if (!maxWidth) return text
+  const lines = text.split('\n')
+  const truncated = lines.map(line =>
+    line.length > maxWidth ? line.slice(0, maxWidth - 1) + '\u2026' : line
+  )
+  return truncated.join('\n')
+}
+
 export function formatBrowser(text, options = {}) {
   const styles = []
   if (options.color) styles.push(`color: ${options.color}`)

@@ -1,6 +1,6 @@
 // src/index.js
 import { isBrowser } from './detect.js'
-import { formatBrowser, formatTerminal } from './styles.js'
+import { formatBrowser, formatTerminal, truncateText } from './styles.js'
 import { renderAscii } from './renderer.js'
 
 // Cache loaded fonts
@@ -19,17 +19,22 @@ async function loadFont(name) {
   }
 }
 
+const DEFAULT_MAX_WIDTH = 80
+
 export async function flair(text, mode, fontOrOptions, options) {
   if (mode === 'text') {
     const opts = (typeof fontOrOptions === 'object') ? fontOrOptions : (options || {})
-    return outputText(text, opts)
+    const maxWidth = opts.maxWidth || DEFAULT_MAX_WIDTH
+    const truncated = truncateText(text, maxWidth)
+    return outputText(truncated, opts)
   }
 
   if (mode === 'flair') {
     const fontName = (typeof fontOrOptions === 'string') ? fontOrOptions : 'standard'
     const opts = options || {}
+    const maxWidth = opts.maxWidth || DEFAULT_MAX_WIDTH
     const fontData = await loadFont(fontName)
-    const rendered = renderAscii(text, fontData)
+    const rendered = renderAscii(text, fontData, maxWidth)
     return outputText(rendered, opts)
   }
 
