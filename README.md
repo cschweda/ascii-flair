@@ -22,6 +22,31 @@ ascii-flair writes to `console.log` and nothing else. It does not touch the DOM,
 
 The entire core is **~1-2KB gzipped**. Each font adds another ~1-2KB, loaded on demand. That's it.
 
+## Dependencies & Size
+
+ascii-flair has **zero runtime dependencies**. None. When you `npm install ascii-flair`, nothing else comes with it.
+
+Fonts are pre-compiled at build time using [figlet](https://www.npmjs.com/package/figlet), which is a **devDependency only** — it never ships to your users. The compiled fonts are compact JSON-like JavaScript modules that get lazy-loaded on demand.
+
+| What | Size (gzipped) |
+|------|---------------|
+| Core (`flair()` + text mode) | ~1.7 KB |
+| One font (e.g. `standard`) | ~1-2 KB |
+| Total for a typical call | ~3 KB |
+
+For comparison, that's smaller than most single SVG icons.
+
+**Framework-agnostic by design.** ascii-flair is plain JavaScript with no framework bindings, no peer dependencies, and no special build plugins. It works anywhere JavaScript runs:
+
+- **Vue / Nuxt** — call it in `onMounted`, a plugin, or `main.js`
+- **React / Next** — call it in `useEffect`, a layout, or an entry file
+- **Angular** — call it in `ngOnInit` or a service
+- **Svelte / SvelteKit** — call it in `onMount` or a server hook
+- **Plain Node.js / CLI tools** — call it at the top of your script
+- **Vanilla browser** — call it in a `<script type="module">`
+
+It uses standard ES module `import` and dynamic `import()` for font loading — both are part of the JavaScript language, not tied to any bundler or framework. Vite, webpack, Rollup, esbuild, Turbopack — they all handle it natively.
+
 ## Usage
 
 ```js
