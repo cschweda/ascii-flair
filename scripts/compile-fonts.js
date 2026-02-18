@@ -32,17 +32,29 @@ const FONTS = [
 // Characters to include in font data
 const CHARS = ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'
 
+// Get list of all available figlet fonts for validation
+function getFigletFonts() {
+  return new Promise((resolve, reject) => {
+    figlet.fonts((err, fonts) => {
+      if (err) reject(err)
+      else resolve(fonts)
+    })
+  })
+}
+
 function extractFont(fontName) {
   return new Promise((resolve, reject) => {
     const charMap = {}
     let height = 0
+    let errors = 0
 
     let pending = CHARS.length
     for (const char of CHARS) {
       figlet.text(char, { font: fontName }, (err, result) => {
         if (err) {
+          errors++
           pending--
-          if (pending === 0) resolve({ charMap, height })
+          if (pending === 0) resolve({ charMap, height, errors })
           return
         }
         const lines = result.split('\n')
@@ -52,15 +64,31 @@ function extractFont(fontName) {
         if (lines.length > height) height = lines.length
         charMap[char] = lines
         pending--
-        if (pending === 0) resolve({ charMap, height })
+        if (pending === 0) resolve({ charMap, height, errors })
       })
     }
   })
 }
 
-async function compileFont(fontName) {
+async function compileFont(fontName, availableFonts) {
+  // Validate font exists in figlet
+  if (!availableFonts.includes(fontName)) {
+    const suggestion = availableFonts.find(f => f.toLowerCase() === fontName.toLowerCase())
+    const hint = suggestion ? ` Did you mean "${suggestion}"?` : ''
+    throw new Error(`Font "${fontName}" not found in figlet.${hint} Run: node -e "import('figlet').then(f => f.default.fonts((e,r) => console.log(r.join('\\n'))))" to list all available fonts.`)
+  }
+
   console.log(`Compiling: ${fontName}`)
-  const { charMap, height } = await extractFont(fontName)
+  const { charMap, height, errors } = await extractFont(fontName)
+
+  // Validate we got usable output
+  const charCount = Object.keys(charMap).length
+  if (charCount === 0) {
+    throw new Error(`Font "${fontName}" produced no character data. It may be incompatible.`)
+  }
+  if (charCount < 26) {
+    console.warn(`  ⚠ Warning: Font "${fontName}" only rendered ${charCount}/${CHARS.length} characters (${errors} errors). Some characters may show as blank.`)
+  }
 
   for (const char of Object.keys(charMap)) {
     while (charMap[char].length < height) {
@@ -81,11 +109,14 @@ async function main() {
     mkdirSync(FONTS_DIR, { recursive: true })
   }
 
+  const availableFonts = await getFigletFonts()
+  console.log(`figlet has ${availableFonts.length} fonts available.\n`)
+
   const fontEntries = []
 
   for (const font of FONTS) {
     try {
-      await compileFont(font)
+      await compileFont(font, availableFonts)
       const safeName = font.toLowerCase().replace(/\s+/g, '-')
       fontEntries.push({ name: font, file: safeName })
     } catch (err) {

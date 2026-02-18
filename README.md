@@ -375,6 +375,152 @@ _  _ ____ _    _    ____
 ```
 
 
+## Adding Custom Fonts
+
+ascii-flair ships with 18 curated fonts, but [figlet.js](https://github.com/patorjk/figlet.js) has **326+** fonts available. If you need a font that isn't included, there are two ways to add it depending on your situation. Both are straightforward if you're comfortable with npm.
+
+### Option 1: `registerFont()` — for apps consuming ascii-flair as a dependency
+
+If you're using ascii-flair as an npm dependency in your app (deployed to Netlify, Vercel, Coolify, etc.), you can't modify the package's built-in fonts. Instead, use `registerFont()` to add fonts at runtime.
+
+**Step 1: Generate the font data**
+
+Create a one-time build script in your project (e.g. `scripts/generate-font.js`):
+
+```js
+// scripts/generate-font.js
+// Run: node scripts/generate-font.js
+import figlet from 'figlet'
+import { writeFileSync } from 'fs'
+
+const FONT_NAME = 'Ghost'  // ← change this to the figlet font you want
+const CHARS = ' !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'
+
+function extractChar(char, fontName) {
+  return new Promise((resolve) => {
+    figlet.text(char, { font: fontName }, (err, result) => {
+      if (err) { resolve(null); return }
+      const lines = result.split('\n')
+      while (lines.length && lines[lines.length - 1].trim() === '') lines.pop()
+      resolve(lines)
+    })
+  })
+}
+
+async function main() {
+  const chars = {}
+  let height = 0
+  for (const char of CHARS) {
+    const lines = await extractChar(char, FONT_NAME)
+    if (lines) {
+      chars[char] = lines
+      if (lines.length > height) height = lines.length
+    }
+  }
+  // Pad all chars to the same height
+  for (const char of Object.keys(chars)) {
+    while (chars[char].length < height) chars[char].push('')
+  }
+  const fontData = { name: FONT_NAME, height, chars }
+  const safeName = FONT_NAME.toLowerCase().replace(/\s+/g, '-')
+  writeFileSync(`src/fonts/${safeName}.json`, JSON.stringify(fontData), 'utf8')
+  console.log(`Generated src/fonts/${safeName}.json (${Object.keys(chars).length} chars, height ${height})`)
+}
+
+main()
+```
+
+You'll need figlet as a devDependency: `npm install -D figlet`
+
+**Step 2: Register the font in your app**
+
+```js
+import { flair, registerFont } from 'ascii-flair'
+import ghostFont from './fonts/ghost.json'
+
+registerFont('ghost', ghostFont)
+
+await flair('Hello', 'flair', 'ghost')
+```
+
+The JSON file gets bundled with your app by your framework's bundler (Vite, webpack, etc.) and deployed alongside it. No changes to the ascii-flair package needed.
+
+**`registerFont(name, fontData)` API:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` | string | Lowercase font name (letters, numbers, hyphens only) |
+| `fontData` | object | `{ name: string, height: number, chars: { [char]: string[] } }` |
+
+Registered fonts are cached in memory and override built-in fonts of the same name.
+
+### Option 2: Fork and extend — for maintainers and contributors
+
+If you maintain your own fork of ascii-flair (or want to contribute a font upstream), you can add fonts directly to the build.
+
+**Step 1:** Preview the font at [patorjk.com/software/taag](http://patorjk.com/software/taag/) to make sure you like it.
+
+**Step 2:** Add the font name to the `FONTS` array in two files:
+
+```js
+// scripts/compile-fonts.js — add the exact figlet font name
+const FONTS = [
+  'Standard',
+  // ... existing fonts ...
+  'Ghost'       // ← add here (must match figlet exactly, case-sensitive)
+]
+```
+
+```js
+// scripts/generate-readme.js — add with display name, file name, and category
+const FONTS = [
+  // ... existing fonts ...
+  { name: 'Ghost', file: 'ghost', category: 'Fun' }  // ← add here
+]
+```
+
+**Step 3:** Compile and verify:
+
+```bash
+npm run build:fonts      # compiles the new font to src/fonts/ghost.js
+npm run build:readme     # updates the README gallery
+npm test                 # make sure nothing broke
+npm run build            # build the dist
+```
+
+The compile script validates that the font name exists in figlet's library (326+ fonts) and will give you a clear error if it doesn't. It also warns if the font fails to render many characters.
+
+**Step 4:** Commit and publish:
+
+```bash
+git add src/fonts/ghost.js scripts/compile-fonts.js scripts/generate-readme.js README.md
+git commit -m "feat: add Ghost font"
+npm version patch
+npm publish
+git push origin main --tags
+```
+
+### Browsing available figlet fonts
+
+To see all 326+ fonts available in figlet:
+
+```bash
+# List all font names
+node -e "import('figlet').then(f => f.default.fonts((e,r) => console.log(r.join('\n'))))"
+
+# Preview a specific font
+node -e "import('figlet').then(f => f.default.text('Hello', { font: 'Ghost' }, (e,r) => console.log(r)))"
+```
+
+Or browse them visually at [patorjk.com/software/taag](http://patorjk.com/software/taag/).
+
+### Security notes
+
+- **Font names are validated** at runtime. Only lowercase letters, numbers, and hyphens are allowed. This prevents path traversal attacks (e.g. `../../etc/passwd`) through the dynamic `import()` used for built-in font loading.
+- **`registerFont()` validates font data structure** before accepting it. Font data must have the correct shape (`name`, `height`, `chars`).
+- **Browser CSS colors are allowlisted.** The `color` option only accepts known safe color names to prevent CSS injection through `console.log('%c...')`.
+- **All output goes to `console.log` only.** ascii-flair never touches the DOM, never uses `innerHTML`, and never injects scripts. Font data is rendered as plain text strings.
+
 ## Credits
 
 - **[figlet.js](https://github.com/patorjk/figlet.js)** by [patorjk](https://github.com/patorjk) — the font engine that makes this possible. Used as a build-time devDependency to pre-compile font data.

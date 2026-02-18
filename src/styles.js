@@ -50,10 +50,17 @@ export function truncateText(text, maxWidth) {
   return { output: truncated.join('\n'), truncated: didTruncate }
 }
 
+// Allowlist of safe CSS color names to prevent CSS injection via console.log('%c...')
+const SAFE_CSS_COLORS = new Set([
+  'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white',
+  'orange', 'purple', 'pink', 'gray', 'grey', 'black'
+])
+
 export function formatBrowser(text, options = {}) {
   const styles = []
-  if (options.color) styles.push(`color: ${options.color}`)
-  if (options.bold) styles.push('font-weight: bold')
+  if (options.color && SAFE_CSS_COLORS.has(options.color)) {
+    styles.push(`color: ${options.color}`)
+  }
   if (options.border) {
     text = applyBorder(text)
   }

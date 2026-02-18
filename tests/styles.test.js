@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { applyAnsiColor, applyBorder, applyPadding, truncateText } from '../src/styles.js'
+import { applyAnsiColor, applyBorder, applyPadding, truncateText, formatBrowser } from '../src/styles.js'
 
 describe('applyAnsiColor', () => {
   it('wraps text in cyan ANSI codes', () => {
@@ -86,5 +86,22 @@ describe('truncateText', () => {
     const { output, truncated } = truncateText('hello', 0)
     expect(output).toBe('hello')
     expect(truncated).toBe(false)
+  })
+})
+
+describe('formatBrowser', () => {
+  it('applies safe color names', () => {
+    const { css } = formatBrowser('hello', { color: 'cyan' })
+    expect(css).toBe('color: cyan')
+  })
+
+  it('ignores unsafe color values to prevent CSS injection', () => {
+    const { css } = formatBrowser('hello', { color: 'red; background-image: url(https://evil.com)' })
+    expect(css).toBeNull()
+  })
+
+  it('ignores unknown color names', () => {
+    const { css } = formatBrowser('hello', { color: 'not-a-color' })
+    expect(css).toBeNull()
   })
 })

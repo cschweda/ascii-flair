@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { flair } from '../src/index.js'
+import { flair, registerFont } from '../src/index.js'
 
 describe('flair', () => {
   beforeEach(() => {
@@ -42,6 +42,18 @@ describe('flair', () => {
 
   it('throws on unknown mode', async () => {
     await expect(flair('hello', 'invalid')).rejects.toThrow()
+  })
+
+  it('rejects font names with path traversal', async () => {
+    await expect(flair('hi', 'flair', '../../etc/passwd')).rejects.toThrow('invalid font name')
+  })
+
+  it('rejects font names with special characters', async () => {
+    await expect(flair('hi', 'flair', '../index')).rejects.toThrow('invalid font name')
+  })
+
+  it('rejects font names starting with a hyphen', async () => {
+    await expect(flair('hi', 'flair', '-bad')).rejects.toThrow('invalid font name')
   })
 
   it('truncates ASCII art to 80 chars wide by default', async () => {
@@ -94,5 +106,40 @@ describe('flair', () => {
   it('does not warn when text fits in flair mode', async () => {
     await flair('Hi', 'flair', 'standard')
     expect(console.warn).not.toHaveBeenCalled()
+  })
+})
+
+describe('registerFont', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  const customFont = {
+    name: 'Custom',
+    height: 1,
+    chars: { 'H': ['H'], 'i': ['i'], ' ': [' '] }
+  }
+
+  it('registers and uses a custom font', async () => {
+    registerFont('custom', customFont)
+    await flair('Hi', 'flair', 'custom')
+    expect(console.log).toHaveBeenCalledWith('Hi')
+  })
+
+  it('throws on invalid font name', () => {
+    expect(() => registerFont('../../bad', customFont)).toThrow('invalid font name')
+  })
+
+  it('throws on missing fontData', () => {
+    expect(() => registerFont('test', null)).toThrow('requires fontData')
+  })
+
+  it('throws on fontData without height', () => {
+    expect(() => registerFont('test', { chars: {} })).toThrow('requires fontData')
   })
 })
