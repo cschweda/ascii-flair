@@ -7,6 +7,7 @@ export function renderAscii(text, fontData, maxWidth = DEFAULT_MAX_WIDTH) {
   const fallback = chars[' '] || Array(height).fill('')
 
   const lines = Array.from({ length: height }, () => '')
+  let charsRendered = 0
 
   for (const char of text) {
     const charLines = chars[char] || fallback
@@ -18,7 +19,11 @@ export function renderAscii(text, fontData, maxWidth = DEFAULT_MAX_WIDTH) {
     for (let row = 0; row < height; row++) {
       lines[row] += charLines[row] || ''
     }
+    charsRendered++
   }
 
-  return lines.join('\n')
+  return {
+    output: lines.join('\n'),
+    truncated: charsRendered < text.length
+  }
 }

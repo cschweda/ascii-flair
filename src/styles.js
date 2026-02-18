@@ -37,12 +37,17 @@ export function applyPadding(text, padding) {
 }
 
 export function truncateText(text, maxWidth) {
-  if (!maxWidth) return text
+  if (!maxWidth) return { output: text, truncated: false }
+  let didTruncate = false
   const lines = text.split('\n')
-  const truncated = lines.map(line =>
-    line.length > maxWidth ? line.slice(0, maxWidth - 1) + '\u2026' : line
-  )
-  return truncated.join('\n')
+  const truncated = lines.map(line => {
+    if (line.length > maxWidth) {
+      didTruncate = true
+      return line.slice(0, maxWidth - 1) + '\u2026'
+    }
+    return line
+  })
+  return { output: truncated.join('\n'), truncated: didTruncate }
 }
 
 export function formatBrowser(text, options = {}) {

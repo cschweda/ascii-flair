@@ -4,6 +4,7 @@ import { flair } from '../src/index.js'
 describe('flair', () => {
   beforeEach(() => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
   })
 
   afterEach(() => {
@@ -68,5 +69,30 @@ describe('flair', () => {
     flair(longText, 'text')
     const output = console.log.mock.calls[0][0]
     expect(output.length).toBeLessThanOrEqual(80)
+  })
+
+  it('warns when text mode truncates', () => {
+    const longText = 'a'.repeat(100)
+    flair(longText, 'text')
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringContaining('truncated')
+    )
+  })
+
+  it('warns when flair mode truncates', async () => {
+    await flair('This Is A Really Long String Of Text', 'flair', 'standard')
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringContaining('truncated')
+    )
+  })
+
+  it('does not warn when text fits in text mode', () => {
+    flair('hello', 'text')
+    expect(console.warn).not.toHaveBeenCalled()
+  })
+
+  it('does not warn when text fits in flair mode', async () => {
+    await flair('Hi', 'flair', 'standard')
+    expect(console.warn).not.toHaveBeenCalled()
   })
 })

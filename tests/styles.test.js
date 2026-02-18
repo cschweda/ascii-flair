@@ -61,26 +61,30 @@ describe('applyPadding', () => {
 
 describe('truncateText', () => {
   it('truncates a long line and adds ellipsis', () => {
-    const result = truncateText('abcdefghij', 6)
-    expect(result).toBe('abcde\u2026')
-    expect(result.length).toBe(6)
+    const { output, truncated } = truncateText('abcdefghij', 6)
+    expect(output).toBe('abcde\u2026')
+    expect(output.length).toBe(6)
+    expect(truncated).toBe(true)
   })
 
   it('leaves short text unchanged', () => {
-    const result = truncateText('hello', 80)
-    expect(result).toBe('hello')
+    const { output, truncated } = truncateText('hello', 80)
+    expect(output).toBe('hello')
+    expect(truncated).toBe(false)
   })
 
   it('truncates each line independently for multi-line text', () => {
-    const result = truncateText('abcdefghij\nshort\nabcdefghij', 6)
-    const lines = result.split('\n')
+    const { output, truncated } = truncateText('abcdefghij\nshort\nabcdefghij', 6)
+    const lines = output.split('\n')
     expect(lines[0]).toBe('abcde\u2026')
     expect(lines[1]).toBe('short')
     expect(lines[2]).toBe('abcde\u2026')
+    expect(truncated).toBe(true)
   })
 
   it('returns text unchanged when maxWidth is falsy', () => {
-    const result = truncateText('hello', 0)
-    expect(result).toBe('hello')
+    const { output, truncated } = truncateText('hello', 0)
+    expect(output).toBe('hello')
+    expect(truncated).toBe(false)
   })
 })

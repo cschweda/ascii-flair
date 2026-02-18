@@ -25,8 +25,12 @@ export async function flair(text, mode, fontOrOptions, options) {
   if (mode === 'text') {
     const opts = (typeof fontOrOptions === 'object') ? fontOrOptions : (options || {})
     const maxWidth = opts.maxWidth || DEFAULT_MAX_WIDTH
-    const truncated = truncateText(text, maxWidth)
-    return outputText(truncated, opts)
+    const { output, truncated } = truncateText(text, maxWidth)
+    outputText(output, opts)
+    if (truncated) {
+      console.warn(`[ascii-flair] Text was truncated to fit within ${maxWidth} characters.`)
+    }
+    return
   }
 
   if (mode === 'flair') {
@@ -34,8 +38,12 @@ export async function flair(text, mode, fontOrOptions, options) {
     const opts = options || {}
     const maxWidth = opts.maxWidth || DEFAULT_MAX_WIDTH
     const fontData = await loadFont(fontName)
-    const rendered = renderAscii(text, fontData, maxWidth)
-    return outputText(rendered, opts)
+    const { output, truncated } = renderAscii(text, fontData, maxWidth)
+    outputText(output, opts)
+    if (truncated) {
+      console.warn(`[ascii-flair] Text was truncated to fit within ${maxWidth} characters. Try shorter text or increase maxWidth.`)
+    }
+    return
   }
 
   throw new Error(`ascii-flair: unknown mode "${mode}". Use "flair" or "text".`)
