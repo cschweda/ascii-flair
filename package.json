@@ -20,10 +20,9 @@
     "dev": "vite",
     "build": "vite build",
     "build:fonts": "node scripts/compile-fonts.js",
-    "build:readme": "node scripts/generate-readme.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "npm run build:fonts && npm run build:readme && npm run build",
+    "prepublishOnly": "npm run build:fonts && npm run build",
     "release:patch": "npm version patch && npm publish",
     "release:minor": "npm version minor && npm publish",
     "release:major": "npm version major && npm publish"

@@ -168,7 +168,7 @@ flair(text, mode, fontOrOptions?, options?)
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `color` | string | — | `cyan`, `green`, `red`, `yellow`, `blue`, `magenta`, `white` |
+| `color` | string | — | Terminal: `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`. Browser also supports: `orange`, `purple`, `pink`, `gray`, `grey`, `black`. |
 | `bold` | boolean | `false` | Bold text (terminal only) |
 | `border` | boolean | `false` | Wrap in a box border |
 | `padding` | number | `0` | Lines of padding around text |
@@ -460,7 +460,7 @@ If you maintain your own fork of ascii-flair (or want to contribute a font upstr
 
 **Step 1:** Preview the font at [patorjk.com/software/taag](http://patorjk.com/software/taag/) to make sure you like it.
 
-**Step 2:** Add the font name to the `FONTS` array in two files:
+**Step 2:** Add the font name to the `FONTS` array in `scripts/compile-fonts.js`:
 
 ```js
 // scripts/compile-fonts.js — add the exact figlet font name
@@ -471,19 +471,10 @@ const FONTS = [
 ]
 ```
 
-```js
-// scripts/generate-readme.js — add with display name, file name, and category
-const FONTS = [
-  // ... existing fonts ...
-  { name: 'Ghost', file: 'ghost', category: 'Fun' }  // ← add here
-]
-```
-
 **Step 3:** Compile and verify:
 
 ```bash
 npm run build:fonts      # compiles the new font to src/fonts/ghost.js
-npm run build:readme     # updates the README gallery
 npm test                 # make sure nothing broke
 npm run build            # build the dist
 ```
@@ -493,10 +484,9 @@ The compile script validates that the font name exists in figlet's library (326+
 **Step 4:** Commit and publish:
 
 ```bash
-git add src/fonts/ghost.js scripts/compile-fonts.js scripts/generate-readme.js README.md
+git add src/fonts/ghost.js scripts/compile-fonts.js
 git commit -m "feat: add Ghost font"
-npm version patch
-npm publish
+./scripts/publish.sh patch
 git push origin main --tags
 ```
 
